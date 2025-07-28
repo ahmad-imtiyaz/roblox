@@ -1,0 +1,1417 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet"
+    />
+
+    <title>Photo Memory Book</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Georgia", serif;
+        background: linear-gradient(
+          135deg,
+          #8b4513 0%,
+          #d2691e 50%,
+          #8b4513 100%
+        );
+        height: 100vh;
+        overflow-x: hidden;
+        perspective: 1000px;
+      }
+
+      /* Intro Animation */
+      .intro-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          to bottom,
+          #87ceeb 0%,
+          #4682b4 50%,
+          #191970 100%
+        );
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        transition: opacity 1s ease-out;
+      }
+
+      .shark {
+        width: 250px;
+        height: 100px;
+        background: linear-gradient(45deg, #708090, #2f4f4f);
+        position: relative;
+        border-radius: 0 0 50px 80px;
+        transform: translateY(100vh) rotate(-10deg);
+        animation: sharkSwim 3s ease-out forwards;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      }
+
+      .shark::before {
+        content: "";
+        position: absolute;
+        top: 30px;
+        right: -35px;
+        width: 0;
+        height: 0;
+        border-left: 50px solid #708090;
+        border-top: 20px solid transparent;
+        border-bottom: 20px solid transparent;
+      }
+
+      .shark::after {
+        content: "";
+        position: absolute;
+        top: 25px;
+        left: 30px;
+        width: 12px;
+        height: 12px;
+        background: #000;
+        border-radius: 50%;
+        box-shadow: 2px 0 0 #fff;
+      }
+
+      .shark-fin {
+        position: absolute;
+        top: -15px;
+        left: 100px;
+        width: 0;
+        height: 0;
+        border-left: 25px solid transparent;
+        border-right: 25px solid transparent;
+        border-bottom: 30px solid #708090;
+      }
+
+      @keyframes sharkSwim {
+        0% {
+          transform: translateY(100vh) rotate(-15deg);
+        }
+        70% {
+          transform: translateY(40vh) rotate(5deg);
+        }
+        100% {
+          transform: translateY(45vh) rotate(0deg);
+        }
+      }
+
+      .intro-container.fade-out {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      /* Main Content */
+      .main-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        padding: 20px;
+        opacity: 0;
+        transition: opacity 1s ease-in;
+      }
+
+      .main-container.show {
+        opacity: 1;
+      }
+
+      .book-container {
+        perspective: 2000px;
+        transform-style: preserve-3d;
+      }
+
+      .book {
+        width: 900px;
+        height: 650px;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.8s ease;
+        transform-style: preserve-3d;
+      }
+
+      .book:hover:not(.opened) {
+        transform: rotateY(-5deg) rotateX(5deg) scale(1.02);
+      }
+
+      .book.opened {
+        cursor: default;
+        transform: rotateY(0deg) rotateX(0deg) scale(1);
+      }
+
+      /* Book Cover */
+      .book-cover {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          135deg,
+          #1e3c72 0%,
+          #2a5298 50%,
+          #1e3c72 100%
+        );
+        border-radius: 15px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: #fff;
+        font-size: 2.5em;
+        font-weight: bold;
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4),
+          inset 0 2px 0 rgba(255, 255, 255, 0.2),
+          inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+        transition: all 0.8s ease;
+        transform-origin: left center;
+        backface-visibility: hidden;
+        border: 3px solid #0f1419;
+      }
+
+      .book-cover::before {
+        content: "";
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        right: 20px;
+        bottom: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+      }
+
+      .book-cover.opening {
+        transform: rotateY(-180deg);
+      }
+
+      /* Book Pages */
+      .book-pages {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #f8f8f0;
+        border-radius: 0 15px 15px 0;
+        opacity: 0;
+        transition: opacity 0.5s ease 0.3s;
+        box-shadow: 0 0 0 3px #d4d4aa, 0 20px 40px rgba(0, 0, 0, 0.3);
+      }
+
+      .book-pages.show {
+        opacity: 1;
+      }
+
+      /* Page Layout */
+      .page-spread {
+        display: flex;
+        width: 100%;
+        height: 100%;
+        position: relative;
+      }
+
+      .page-left,
+      .page-right {
+        flex: 1;
+        height: 100%;
+        padding: 40px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .page-left {
+        border-right: 2px solid #d4d4aa;
+        background: linear-gradient(90deg, #f8f8f0 0%, #f0f0e8 100%);
+      }
+
+      .page-right {
+        background: linear-gradient(90deg, #f0f0e8 0%, #f8f8f0 100%);
+      }
+
+      /* Welcome Page */
+      .welcome-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        text-align: center;
+      }
+
+      .welcome-content h1 {
+        font-family: "Press Start 2P", monospace;
+        font-size: 3.5em;
+        color: #000000;
+        margin-bottom: 20px;
+        text-shadow: 2px 2px 0 #000, 4px 4px 0 #0ff;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .welcome-content p {
+        font-family: "Press Start 2P", monospace;
+        font-size: 0.9em;
+        color: #ffffff;
+        text-shadow: 1px 1px 0 #000;
+        margin-bottom: 30px;
+        line-height: 1.6;
+        max-width: 90%;
+      }
+
+      .swipe-indicator {
+        font-family: "Press Start 2P", monospace;
+        font-size: 0.5em;
+        color: #ff00cc;
+        animation: blink 1.2s steps(1) infinite;
+      }
+
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+
+      /* Photo Frames - Different layouts */
+      .photo-grid {
+        display: grid;
+        gap: 25px;
+        height: 100%;
+        align-content: center;
+      }
+
+      /* Default 2x2 grid */
+      .photo-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      /* Layout variations */
+      .photo-grid.layout-vertical {
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(4, 1fr);
+      }
+
+      .photo-grid.layout-asymmetric {
+        grid-template-columns: 2fr 1fr;
+        grid-template-rows: 1fr 1fr;
+      }
+
+      .photo-grid.layout-diagonal {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+      }
+
+      .photo-grid.layout-single {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr;
+        place-items: center;
+        width: 100%;
+        height: 100%;
+      }
+
+      /* Bingkai besar */
+      .photo-grid.layout-single .photo-frame.large {
+        width: 95%;
+        max-width: 850px;
+        padding: 30px;
+        background-color: #f8f8f8;
+      }
+
+      .photo-grid.layout-single .photo-frame.large img {
+        width: 100%;
+        height: auto;
+        max-height: 480px;
+        object-fit: cover;
+      }
+
+      /* Caption lirik gaya santai */
+      .photo-caption {
+        margin-top: 15px;
+        text-align: center;
+        line-height: 1.6;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 1em;
+        color: #333;
+        font-weight: bold;
+        white-space: pre-line;
+      }
+
+      .photo-frame {
+        background: #fff;
+        border-radius: 5px;
+        padding: 12px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15), 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        position: relative;
+        transform: rotate(-1deg);
+      }
+
+      .photo-frame:nth-child(even) {
+        transform: rotate(1deg);
+      }
+
+      .photo-frame:hover {
+        transform: rotate(0deg) scale(1.05);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+      }
+
+      .photo-frame img {
+        width: 100%;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 4px;
+        background: #f5f5f5;
+      }
+
+      .photo-frame::before {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #aaa;
+        font-size: 16px;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      /* Special layouts for different spreads */
+      .photo-frame.large {
+        grid-column: span 2;
+        grid-row: span 2;
+      }
+      .photo-caption {
+        margin-top: 10px;
+        text-align: center;
+        line-height: 1.6;
+        font-family: "Segoe UI", sans-serif;
+        font-size: 0.65em;
+        color: #333;
+        font-weight: bold;
+        white-space: pre-line;
+      }
+
+      .photo-frame.wide {
+        grid-column: span 2;
+      }
+
+      .photo-frame.tall {
+        grid-row: span 2;
+      }
+
+      /* Polaroid style for some frames */
+      .photo-frame.polaroid {
+        padding: 20px 20px 60px 20px;
+        background: #fff;
+        transform: rotate(-3deg);
+      }
+
+      .photo-frame.polaroid::after {
+        content: attr(data-caption);
+        position: absolute;
+        bottom: 15px;
+        left: 20px;
+        right: 20px;
+        text-align: center;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        color: #333;
+      }
+
+      /* Music Page */
+      .music-content {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        height: 100%;
+        text-align: center;
+      }
+
+      .music-frame {
+        width: 350px;
+        height: 350px;
+        background: #fff;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2),
+          0 5px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 40px;
+        position: relative;
+        transform: rotate(-2deg);
+        transition: transform 0.3s ease;
+      }
+
+      .music-frame:hover {
+        transform: rotate(0deg);
+      }
+
+      .music-frame img {
+        width: 100%;
+        height: 220px;
+        object-fit: cover;
+        border-radius: 15px;
+        background: #f0f0f0;
+      }
+
+      .play-btn {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, #2c5aa0, #4a7bc8);
+        border: none;
+        color: white;
+        font-size: 32px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 20px auto 0;
+        box-shadow: 0 8px 16px rgba(44, 90, 160, 0.3);
+      }
+
+      .play-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 12px 24px rgba(44, 90, 160, 0.4);
+      }
+
+      .song-info {
+        color: #555;
+      }
+
+      .song-title {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+
+      /* Navigation */
+      .nav-buttons {
+        position: absolute;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: none;
+        gap: 30px;
+        z-index: 100;
+      }
+
+      .nav-buttons.show {
+        display: flex;
+      }
+
+      .nav-btn {
+        padding: 12px 24px;
+        background: linear-gradient(45deg, #2c5aa0, #4a7bc8);
+        color: white;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(44, 90, 160, 0.3);
+      }
+
+      .nav-btn:hover:not(:disabled) {
+        background: linear-gradient(45deg, #4a7bc8, #6a9bd8);
+        transform: scale(1.05);
+        box-shadow: 0 6px 16px rgba(44, 90, 160, 0.4);
+      }
+
+      .nav-btn:disabled {
+        background: #ccc;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+      }
+
+      /* Page Numbers */
+      .page-number {
+        position: absolute;
+        bottom: 20px;
+        color: #888;
+        font-size: 14px;
+        font-style: italic;
+      }
+
+      .page-left .page-number {
+        left: 40px;
+      }
+
+      .page-right .page-number {
+        right: 40px;
+      }
+
+      /* Mobile Responsive Design */
+      @media (max-width: 768px) {
+        .book {
+          width: 95vw;
+          height: 85vh;
+          max-width: 400px;
+        }
+
+        /* Mobile: Single page view */
+        .page-spread {
+          display: block;
+        }
+
+        .page-left,
+        .page-right {
+          width: 100%;
+          height: 100%;
+          padding: 20px;
+          border: none;
+          background: #f8f8f0;
+        }
+
+        .page-right {
+          display: none;
+        }
+
+        .mobile-page {
+          display: block !important;
+        }
+
+        .welcome-content h1 {
+          font-family: "Press Start 2P", monospace;
+          font-size: 3.5em;
+          color: #000000;
+          margin-bottom: 20px;
+          text-shadow: 2px 2px 0 #000, 4px 4px 0 #0ff;
+          text-transform: uppercase;
+          letter-spacing: 2px;
+        }
+
+        .welcome-content p {
+          font-family: "Press Start 2P", monospace;
+          font-size: 0.9em;
+          color: #ffffff;
+          text-shadow: 1px 1px 0 #000;
+          margin-bottom: 30px;
+          line-height: 1.6;
+          max-width: 90%;
+        }
+        .swipe-indicator {
+          font-family: "Press Start 2P", monospace;
+          font-size: 0.5em;
+          color: #ff00cc;
+          animation: blink 1.2s steps(1) infinite;
+        }
+
+        @keyframes blink {
+          50% {
+            opacity: 0;
+          }
+        }
+
+        /* Mobile photo layouts */
+        .photo-grid {
+          grid-template-columns: 1fr 1fr;
+          gap: 15px;
+          padding: 10px 0;
+        }
+
+        .photo-grid.layout-vertical {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+
+        .photo-grid.layout-single {
+          grid-template-columns: 1fr;
+          grid-template-rows: 1fr;
+          place-items: center;
+          width: 100%;
+          height: 100%;
+        }
+
+        /* Bingkai besar */
+        .photo-grid.layout-single .photo-frame.large {
+          width: 95%;
+          max-width: 850px;
+          padding: 30px;
+          background-color: #f8f8f8;
+        }
+
+        .photo-grid.layout-single .photo-frame.large img {
+          width: 100%;
+          height: auto;
+          max-height: 480px;
+          object-fit: cover;
+        }
+
+        /* Caption lirik gaya santai */
+        .photo-caption {
+          margin-top: 15px;
+          text-align: center;
+          line-height: 1.6;
+          font-family: "Segoe UI", sans-serif;
+          font-size: 1em;
+          color: #333;
+          font-weight: bold;
+          white-space: pre-line;
+        }
+
+        .photo-frame {
+          padding: 8px;
+        }
+
+        .photo-frame img {
+          height: 120px;
+        }
+
+        .photo-frame.polaroid {
+          padding: 15px 15px 45px 15px;
+        }
+
+        .photo-frame.polaroid::after {
+          font-size: 12px;
+          bottom: 10px;
+        }
+
+        .music-frame {
+          width: 280px;
+          height: 300px;
+          padding: 20px;
+        }
+
+        .music-frame img {
+          height: 160px;
+        }
+
+        .play-btn {
+          width: 60px;
+          height: 60px;
+          font-size: 20px;
+        }
+
+        .song-title {
+          font-size: 1.2em;
+        }
+
+        /* Mobile navigation */
+        .nav-buttons {
+          bottom: 15px;
+          gap: 20px;
+        }
+
+        .nav-btn {
+          padding: 10px 20px;
+          font-size: 14px;
+        }
+
+        .page-number {
+          bottom: 10px;
+          font-size: 12px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .book {
+          width: 98vw;
+          height: 80vh;
+        }
+
+        .welcome-content h1 {
+          font-size: 1.8em;
+        }
+
+        .page-left,
+        .page-right {
+          padding: 15px;
+        }
+
+        .photo-grid {
+          gap: 10px;
+        }
+
+        .photo-frame img {
+          height: 100px;
+        }
+
+        .music-frame {
+          width: 240px;
+          height: 260px;
+        }
+
+        .music-frame img {
+          height: 130px;
+        }
+      }
+
+      /* Hide elements for mobile single page view */
+      @media (max-width: 768px) {
+        .mobile-hidden {
+          display: none !important;
+        }
+      }
+
+      .page-spread.flip-right {
+        animation: flipRight 0.6s ease forwards;
+      }
+
+      .page-spread.flip-left {
+        animation: flipLeft 0.6s ease forwards;
+      }
+
+      @keyframes flipRight {
+        0% {
+          transform: rotateY(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: rotateY(-90deg);
+          opacity: 0;
+        }
+      }
+
+      @keyframes flipLeft {
+        0% {
+          transform: rotateY(0deg);
+          opacity: 1;
+        }
+        100% {
+          transform: rotateY(90deg);
+          opacity: 0;
+        }
+      }
+      .music-playbox {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        margin-top: 15px;
+      }
+
+      .music-play-btn {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #1db954, #1ed760);
+        color: white;
+        border: none;
+        font-size: 20px;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
+        transition: transform 0.2s ease;
+      }
+
+      .music-play-btn:hover {
+        transform: scale(1.1);
+      }
+
+      .music-label {
+        font-size: 0.9em;
+        color: #333;
+        font-family: "Georgia", serif;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Intro Animation -->
+    <div class="intro-container" id="intro">
+      <div class="shark">
+        <div class="shark-fin"></div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-container" id="mainContent">
+      <div class="book-container">
+        <div class="book" id="book">
+          <!-- Book Cover -->
+          <div class="book-cover" id="bookCover">
+            <div></div>
+          </div>
+
+          <!-- Book Pages -->
+          <div class="book-pages" id="bookPages">
+            <!-- Welcome Page -->
+            <div class="page-spread" id="page0">
+              <div class="page-left mobile-page">
+                <div class="welcome-content">
+                  <h1>Roblox Anjay Mabar</h1>
+                  <p>Gabut ngapain? ya login roblox lahh....</p>
+                  <div class="swipe-indicator">
+                    <span>Geser untuk melihat isinya</span>
+                    <span>→</span>
+                  </div>
+                </div>
+                <div class="page-number">1</div>
+              </div>
+              <div class="page-right mobile-hidden">
+                <div class="photo-grid">
+                  <div
+                    class="photo-frame polaroid"
+                    data-photo="1"
+                    data-caption=""
+                  >
+                    <img
+                      src="gambar/gambar21.png"
+                      alt="Memory 1"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                  <div class="photo-frame" data-photo="2">
+                    <img
+                      src="gambar/gambar25.png"
+                      alt="Memory 2"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                  <div class="photo-frame" data-photo="3">
+                    <img
+                      src="gambar/gambar26.png"
+                      alt="Memory 3"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                  <div class="photo-frame" data-photo="4">
+                    <img
+                      src="gambar/gambar23.png"
+                      alt="Memory 4"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                </div>
+                <div class="page-number">2</div>
+              </div>
+            </div>
+
+            <!-- Photo Page 1 (Mobile: First batch) -->
+            <div class="page-spread" id="page1" style="display: none">
+              <div class="page-left mobile-page">
+                <div class="photo-grid layout-vertical">
+                  <div
+                    class="photo-frame polaroid"
+                    data-photo="1"
+                    data-caption=""
+                  >
+                    <img
+                      src="gambar/gambar6.png"
+                      alt="Memory 1"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                  <div class="photo-frame" data-photo="2">
+                    <img
+                      src="gambar/gambar7.png"
+                      alt="Memory 2"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                </div>
+                <div class="page-number">2</div>
+              </div>
+              <div class="page-right mobile-hidden">
+                <div class="photo-grid layout-asymmetric">
+                  <div class="photo-frame large" data-photo="3">
+                    <img
+                      src="gambar/gambar19.png"
+                      alt="Memory 3"
+                      onerror="this.style.display='none'"
+                    />
+                    <div class="photo-caption">
+                      When you cross my mind, I said, I said I'm sick of, sick
+                      of, sick of, sick of chasing You're the one that's always
+                      running through my daydream, I I can only see your face
+                      when I close my eyes Can I get a kiss? And can you make it
+                      last forever? I said I'm 'bout to go to war I don't know
+                      if I'ma see you again
+                    </div>
+
+                    <!-- Tombol Play Musik -->
+                    <div class="music-playbox">
+                      <button
+                        class="music-play-btn"
+                        onclick="playCustomAudio(this)"
+                      >
+                        ▶
+                      </button>
+                      <span class="music-label">Play Music</span>
+                      <audio src="music/lagu2.mp3"></audio>
+                    </div>
+                  </div>
+
+                  <div class="photo-frame" data-photo="4">
+                    <img
+                      src="gambar/gambar18.png"
+                      alt="Memory 4"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                  <div class="photo-frame" data-photo="5">
+                    <img
+                      src="gambar/gambar20.png"
+                      alt="Memory 5"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                </div>
+                <div class="page-number">3</div>
+              </div>
+            </div>
+
+            <!-- Photo Page 2 (Mobile: Second batch) -->
+            <div class="page-spread" id="page2" style="display: none">
+              <div class="page-left mobile-page">
+                <div class="photo-grid">
+                  <div class="photo-frame" data-photo="3">
+                    <img
+                      src="gambar/kiri.png"
+                      alt="Memory 3"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                  <div class="photo-frame" data-photo="4">
+                    <img
+                      src="gambar/kanan.png"
+                      alt="Memory 4"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                </div>
+                <div class="page-number">3</div>
+              </div>
+              <div class="page-right mobile-hidden">
+                <div class="photo-grid">
+                  <div
+                    class="photo-frame polaroid wide"
+                    data-photo="6"
+                    data-caption=""
+                  >
+                    <img
+                      src="gambar/gambar26.png"
+                      alt="Memory 6"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                  <div class="photo-frame" data-photo="7">
+                    <img
+                      src="gambar/gambar22.png"
+                      alt="Memory 7"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                  <div class="photo-frame" data-photo="8">
+                    <img
+                      src="gambar/gambar23.png"
+                      alt="Memory 8"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                </div>
+                <div class="page-number">4</div>
+              </div>
+            </div>
+
+            <!-- Photo Page 3 (Mobile: Third batch) -->
+            <!-- <div class="page-spread" id="page3" style="display: none">
+              <div class="page-left mobile-page">
+                <div class="photo-grid">
+                  <div class="photo-frame" data-photo="5">
+                    <img
+                      src="gambar/gambar1.png"
+                      alt="Memory 5"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                  <div
+                    class="photo-frame polaroid"
+                    data-photo="6"
+                    data-caption=""
+                  >
+                    <img
+                      src="gambar/gambar1.png"
+                      alt="Memory 6"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                </div>
+                <div div class="page-number">4</div>
+              </div>
+              <div class="page-right mobile-hidden">
+                <div class="photo-grid layout-single">
+                  <div
+                    class="photo-frame large polaroid"
+                    data-photo="9"
+                    data-caption=""
+                  >
+                    <img
+                      src="gambar/gambar1.png"
+                      alt="Memory 9"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                </div>
+                <div class="page-number">5</div>
+              </div>
+            </div> -->
+
+            <!-- Photo Page 4 (Mobile: Fourth batch) -->
+            <div class="page-spread" id="page4" style="display: none">
+              <div class="page-left mobile-page">
+                <div class="photo-grid">
+                  <div class="photo-frame" data-photo="7">
+                    <img
+                      src="gambar/gambar12.png"
+                      alt="Memory 7"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                  <div class="photo-frame" data-photo="8">
+                    <img
+                      src="gambar/gambar14.png"
+                      alt="Memory 8"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                </div>
+                <div class="page-number">5</div>
+              </div>
+              <div class="page-right mobile-hidden">
+                <div class="photo-grid">
+                  <div class="photo-frame" data-photo="10">
+                    <img
+                      src="gambar/gambar3.png"
+                      alt="Memory 10"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                  <div class="photo-frame" data-photo="11">
+                    <img
+                      src="gambar/gambar5.png"
+                      alt="Memory 11"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                  <div class="photo-frame wide" data-photo="12">
+                    <img
+                      src="gambar/gambar17.png"
+                      alt="Memory 12"
+                      onerror="this.style.display='none'"
+                    />
+                  </div>
+                </div>
+                <div class="page-number">6</div>
+              </div>
+            </div>
+
+            <!-- Photo Page 5 (Mobile: Final photos) -->
+            <div class="page-spread" id="page5" style="display: none">
+              <div class="page-left mobile-page">
+                <div class="photo-grid layout-single">
+                  <div
+                    class="photo-frame large polaroid"
+                    data-photo="9"
+                    data-caption=""
+                  >
+                    <img
+                      src="gambar/teks.jpg"
+                      alt="Memory 9"
+                      onerror="this.style.display='none'"
+                    />
+                    <div class="photo-caption">
+                      "Hidup kadang kiding asikin ae bang...."
+                    </div>
+                  </div>
+                </div>
+                <div class="page-number">6</div>
+              </div>
+
+              <div class="page-right mobile-hidden">
+                <div class="music-content">
+                  <div class="music-frame">
+                    <img
+                      src="gambar/gambar1.png"
+                      alt="Music Cover"
+                      onerror="this.style.display='none'"
+                    />
+                    <button class="play-btn" id="playBtn">▶</button>
+                  </div>
+                  <div class="song-info">
+                    <div class="song-title">Wanting You Is Crime</div>
+                    <div>Music by: Mario A</div>
+                  </div>
+                </div>
+                <div class="page-number">7</div>
+              </div>
+            </div>
+
+            <div class="page-spread" id="page7" style="display: none">
+              <div class="page-left mobile-page">
+                <div
+                  style="
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100%;
+                    color: #2c5aa0;
+                    text-align: center;
+                    font-size: 1.4em;
+                    font-style: italic;
+                  "
+                >
+                  <div style="margin-bottom: 30px; font-size: 3em">:v</div>
+                  <div>dahh selesaii...</div>
+                  <div style="margin-top: 20px; font-size: 0.9em; color: #888">
+                    Thank you dah ajak main roblox
+                  </div>
+                </div>
+                <div class="page-number">8</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="nav-buttons" id="navButtons">
+        <button class="nav-btn" id="prevBtn">← Previous</button>
+        <button class="nav-btn" id="nextBtn">Next →</button>
+      </div>
+    </div>
+
+    <script>
+      let currentPage = 0;
+      let totalPages = 8; // Updated for mobile pages
+      let bookOpened = false;
+      let isPlaying = false;
+      let audio = null;
+      let isAnimating = false;
+      let isMobile = window.innerWidth <= 768;
+
+      // Update total pages based on screen size
+      function updateTotalPages() {
+        isMobile = window.innerWidth <= 768;
+        totalPages = isMobile ? 8 : 6; // More pages for mobile single-page view
+      }
+
+      // Add shark fin to the shark
+      document.querySelector(".shark").innerHTML +=
+        '<div class="shark-fin"></div>';
+
+      // Intro Animation
+      setTimeout(() => {
+        document.getElementById("intro").classList.add("fade-out");
+        setTimeout(() => {
+          document.getElementById("intro").style.display = "none";
+          document.getElementById("mainContent").classList.add("show");
+        }, 1000);
+      }, 3500);
+
+      // Book Opening
+      document.getElementById("book").addEventListener("click", function () {
+        if (!bookOpened && !isAnimating) {
+          openBook();
+        }
+      });
+
+      function openBook() {
+        isAnimating = true;
+        const book = document.getElementById("book");
+        const bookCover = document.getElementById("bookCover");
+        const bookPages = document.getElementById("bookPages");
+        const navButtons = document.getElementById("navButtons");
+
+        book.classList.add("opened");
+        bookCover.classList.add("opening");
+
+        setTimeout(() => {
+          bookPages.classList.add("show");
+          navButtons.classList.add("show");
+          bookOpened = true;
+          isAnimating = false;
+          updateTotalPages();
+        }, 800);
+      }
+
+      // Page Navigation
+      // Page Navigation with Flip Animation
+      function showPage(pageIndex) {
+        if (isAnimating || pageIndex === currentPage) return;
+
+        const pages = document.querySelectorAll(".page-spread");
+        const current = pages[currentPage];
+        const next = pages[pageIndex];
+
+        isAnimating = true;
+
+        // Tentukan arah animasi
+        const direction = pageIndex > currentPage ? "flip-right" : "flip-left";
+
+        // Tambahkan efek animasi keluar
+        current.classList.add(direction);
+
+        setTimeout(() => {
+          current.style.display = "none";
+          current.classList.remove(direction);
+
+          next.style.display = "flex";
+          currentPage = pageIndex;
+
+          document.getElementById("prevBtn").disabled = currentPage === 0;
+          document.getElementById("nextBtn").disabled =
+            currentPage === totalPages - 1;
+
+          isAnimating = false;
+        }, 600); // waktu animasi sesuai CSS
+      }
+
+      document.getElementById("prevBtn").addEventListener("click", () => {
+        if (currentPage > 0 && !isAnimating) {
+          showPage(currentPage - 1);
+        }
+      });
+
+      document.getElementById("nextBtn").addEventListener("click", () => {
+        if (currentPage < totalPages - 1 && !isAnimating) {
+          showPage(currentPage + 1);
+        }
+      });
+
+      // Touch/Swipe Navigation
+      let startX = 0;
+      let startY = 0;
+
+      document
+        .getElementById("bookPages")
+        .addEventListener("touchstart", (e) => {
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+        });
+
+      document.getElementById("bookPages").addEventListener("touchend", (e) => {
+        if (!bookOpened || isAnimating) return;
+
+        const endX = e.changedTouches[0].clientX;
+        const endY = e.changedTouches[0].clientY;
+        const diffX = startX - endX;
+        const diffY = startY - endY;
+
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+          if (diffX > 0 && currentPage < totalPages - 1) {
+            showPage(currentPage + 1);
+          } else if (diffX < 0 && currentPage > 0) {
+            showPage(currentPage - 1);
+          }
+        }
+      });
+
+      // Keyboard Navigation
+      document.addEventListener("keydown", (e) => {
+        if (!bookOpened || isAnimating) return;
+
+        if (e.key === "ArrowLeft" && currentPage > 0) {
+          showPage(currentPage - 1);
+        } else if (e.key === "ArrowRight" && currentPage < totalPages - 1) {
+          showPage(currentPage + 1);
+        }
+      });
+
+      // Music Player
+      function setupMusicPlayer(btnId) {
+        document.getElementById(btnId).addEventListener("click", function () {
+          if (!audio) {
+            audio = new Audio("music/wanting-you-is-crime.mp3");
+            audio.addEventListener("ended", () => {
+              isPlaying = false;
+              document.getElementById("playBtn").innerHTML = "▶";
+              if (document.getElementById("playBtn2")) {
+                document.getElementById("playBtn2").innerHTML = "▶";
+              }
+            });
+            audio.addEventListener("error", () => {
+              alert(
+                "Audio file not found. Please add your music file to the music folder."
+              );
+            });
+          }
+
+          if (isPlaying) {
+            audio.pause();
+            this.innerHTML = "▶";
+            if (btnId === "playBtn" && document.getElementById("playBtn2")) {
+              document.getElementById("playBtn2").innerHTML = "▶";
+            } else if (btnId === "playBtn2") {
+              document.getElementById("playBtn").innerHTML = "▶";
+            }
+            isPlaying = false;
+          } else {
+            audio
+              .play()
+              .then(() => {
+                this.innerHTML = "⏸";
+                if (
+                  btnId === "playBtn" &&
+                  document.getElementById("playBtn2")
+                ) {
+                  document.getElementById("playBtn2").innerHTML = "⏸";
+                } else if (btnId === "playBtn2") {
+                  document.getElementById("playBtn").innerHTML = "⏸";
+                }
+                isPlaying = true;
+              })
+              .catch(() => {
+                alert("Could not play audio. Please check if the file exists.");
+              });
+          }
+        });
+      }
+
+      // Setup both music players
+      setupMusicPlayer("playBtn");
+      setupMusicPlayer("playBtn2");
+
+      // Handle window resize
+      window.addEventListener("resize", () => {
+        updateTotalPages();
+      });
+
+      // Initialize
+      document.getElementById("prevBtn").disabled = true;
+      updateTotalPages();
+    </script>
+    <script>
+      function playCustomAudio(btn) {
+        const audio = btn.parentElement.querySelector("audio");
+
+        if (audio.paused) {
+          audio.play();
+          btn.innerHTML = "⏸";
+        } else {
+          audio.pause();
+          btn.innerHTML = "▶";
+        }
+
+        // Reset tombol lain jika ada
+        document
+          .querySelectorAll(".music-playbox audio")
+          .forEach((otherAudio) => {
+            if (otherAudio !== audio) {
+              otherAudio.pause();
+              const otherBtn = otherAudio.parentElement.querySelector("button");
+              if (otherBtn) otherBtn.innerHTML = "▶";
+            }
+          });
+
+        // Reset tombol saat lagu selesai
+        audio.onended = () => {
+          btn.innerHTML = "▶";
+        };
+      }
+    </script>
+  </body>
+</html>
